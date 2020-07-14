@@ -1,37 +1,20 @@
 import { Cliente } from "./Cliente.js";
-import { ContaCorrente } from "./ContaCorrente.js";
+import { Gerente } from "./Funcionario/Gerente.js";
+import { Diretor } from "./Funcionario/Diretor.js";
+import { SistemaAutenticacao } from "./SistemaAutenticacao/SistemaAutenticacao.js";
 
-const cliente1 = new Cliente("Thales",12345678914);
-console.log(cliente1.cpf);
-console.log(cliente1);
+const diretor = new Diretor("Thales", 10000, 12345678912);
+const gerente = new Gerente("Paulo", 5000, 1234567899);
+const cliente = new Cliente("Thaila", "14568914578", "147");
 
-const conta1 = new ContaCorrente(cliente1, 1001);
-
-
-const cliente2 = new Cliente("Alice", 15978945684);
-const conta2 = new ContaCorrente(cliente2, 102);
-
-console.log(conta1);
-// console.log(conta2.cliente);
-// console.log(conta2.saldo);
-// console.log(cliente2);
-
-conta2.depositar(900);
-// console.log(conta2.saldo);
-const valorTransferido = 300;
-conta2.transferir(valorTransferido, conta1);
+diretor.cadastrarSenha("123456");
+gerente.cadastrarSenha("1234");
+const diretorEstaLogado =  SistemaAutenticacao.login(diretor, "123456");
+const gerenteEstaLogado = SistemaAutenticacao.login(gerente, "1234");
+const clienteEstaLogado = SistemaAutenticacao.login(cliente, "147");
 
 
-
-conta1.depositar(500);
-const valorSacado = conta1.sacar(100);
-// console.log(conta1.saldo);
-// console.log(valorSacado);
-// console.log(cliente1);
-// console.log(conta1);
-
-console.log(ContaCorrente.numeroContas);
-
+console.log( clienteEstaLogado, diretorEstaLogado, gerenteEstaLogado);
 
 
 

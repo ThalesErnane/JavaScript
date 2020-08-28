@@ -132,3 +132,175 @@ E no final ele devolve para nós o valor 24 , que é o valor esperado do produt�
 Parabéns, você acertou!
 DISCUTIR NO FORUM
 PRÓX
+
+
+//////////////////////////////////////////////////////////////////////////
+
+Implementando Proxy 
+
+Uma implementação possível é:
+
+let funcionario = {email: 'abc@abc.com'};
+let funcionarioProxy = new Proxy(funcionario,  {
+
+    get(target, prop, receiver) {
+        console.log('Armadilha aqui!');
+        return Reflect.get(target, prop, receiver);
+    }
+
+});
+console.log(funcionarioProxy.email);
+Veja que a instrução a seguir é muito importante: return Reflect.get(target, prop, receiver). É ela que efetivamente realiza a operação no objeto real. Aliás, poderíamos ter conseguido o mesmo resultado da seguinte maneira:
+
+let funcionario = {email: 'abc@abc.com'};
+let funcionarioProxy = new Proxy(funcionario,  {
+
+    get(target, prop, receiver) {
+        console.log('Armadilha aqui!');
+        return target[prop];
+    }
+
+});
+console.log(funcionarioProxy.email);
+Há uma ligeira diferença entre as duas. Na primeira, get retorna uma função que é invocada para obter o valor da propriedade original, na segunda, o valor é retornado diretamente. Entenda que Reflect.get cria algo semelhante a uma getter. Você ainda lembra que um getter é uma espécie de função?
+
+
+
+Temos a seguinte implementação. Veja que ele concatena os asteriscos com o retorno de Reflect.get, aquele que efetivamente executa a operação de leitura no objeto real. Ou seja, nosso proxy executa a leitura no objeto original e devolve para quem chamou o próprio proxy o valor concatenado com asteriscos:
+
+let funcionario = {email: 'abc@abc.com'};
+let funcionarioProxy = new Proxy(funcionario,  {
+
+    get(target, prop, receiver) {
+        console.log('Armadilha aqui!');
+        return '**' + Reflect.get(target, prop, receiver) + '**' ;        
+    }
+
+});
+console.log(funcionarioProxy.email);
+Agora, podemos evitar a declaração da variável funcionarioProxy desta forma:
+
+funcionario = new Proxy({email: 'abc@abc.com'},  {
+
+    get(target, prop, receiver) {
+        console.log('Armadilha aqui!');
+        return '**' + Reflect.get(target, prop, receiver) + '**' ;        
+    }
+
+});
+console.log(funcionario.email);
+
+
+
+Mais sobre Proxy 
+
+Olha o funcionário no formato literal novamente aí gente:
+
+let funcionario = {email: 'abc@abc.com'};
+Crie um proxy que exibe no console o valor da propriedade antes dela ser alterada e o valor novo.
+
+VER OPINIÃO DO INSTRUTOR
+Opinião do instrutor
+
+Uma implementação possível:
+
+let funcionario = {email: 'abc@abc.com'};
+let funcionarioProxy = new Proxy(funcionario,  {
+
+    set(target, prop, value, receiver) {
+        console.log(`Valor antigo ${target[prop]}, valor atual: ${value}`);
+        return Reflect.set(target, prop, value, receiver);
+    }
+
+});
+funcionarioProxy.email = 'aaa@aaa.com';
+Veja que usamos set no handler passado para o proxy. Além disso, muito cuidado que quando usamos set, a função deve receber quatro parâmetros e não três, como no caso do get.
+
+Poderíamos conseguir o mesmo resultado desta forma:
+
+let funcionario = {email: 'abc@abc.com'};
+let funcionarioProxy = new Proxy(funcionario,  {
+
+    set(target, prop, value, receiver) {
+        console.log(`Valor antigo ${target[prop]}, valor atual: ${value}`);
+        target[prop] = value;
+    }
+
+});
+funcionarioProxy.email = 'aaa@aaa.com';
+A diferença é que essa última solução altera diretamente o valor o objeto encapsulado. A primeira forma, com Reflect.set sempre deve retornar um valor, que é uma função que será chamada para realizar a operação de atribuição. Por enquanto, podemos usar uma ou outra forma que o resultado será o mesmo.
+
+
+Mais uma vez, temos a nossa classe Funcionario:
+
+class Funcionario {
+
+    constructor(email) {
+        this._email = email;
+    }
+
+    get email() {
+        return this._email;
+    }
+
+    set email(email) {
+        this._email = email;
+    }
+}
+Crie um proxy que exiba no console o valor da propriedade antes de ela ser alterada e o valor novo. Inclusive, exiba também o nome da propriedade que está sendo modificada.
+
+VER OPINIÃO DO INSTRUTOR
+Opinião do instrutor
+
+Uma implementação possível:
+
+let funcionario= new Proxy(new Funcionario('abc@abc.com'),  {
+
+    set(target, prop, value, receiver) {
+        console.log(prop); // imprimindo a propriedade que está sendo alterada
+        console.log(`Valor antigo ${target[prop]}, valor atual: ${value}`);
+        return Reflect.set(target, prop, value, receiver);
+    }
+});
+
+funcionario.email = 'aaa@aaa.com';
+Veja que usamos set no handler passado para o proxy. Além disso, muito cuidado que quando usamos set, a função deve receber quatro parâmetros e não três, como no caso do get.
+
+Reparou que a mensagem do proxy é exibida duas vezes? É que email é um setter. Nosso proxy irá executar seu código quando o setter for chamado e também para a propriedade _email, que é modificada pelo setter.
+
+
+Arguments 
+
+function exibeNomeCompleto(nome, sobrenome) {
+
+    alert(`${nome} ${sobrenome}`);
+  }
+  
+  exibeNomeCompleto('Flávio', 'Almeida');
+
+
+  function exibeNomeCompleto() {
+
+    alert(`${arguments[0]} ${arguments[1]}`);
+  }
+  
+  exibeNomeCompleto('Flávio', 'Almeida');
+
+
+  O Error-first Callback, ou errorback, é um padrão que foi adotado no mundo Node.js. Como você já aprendeu, o callback é uma função chamada quando uma tarefa for executada, como uma requisição Ajax ou o acesso ao banco de dados. No entanto, a qualquer momento pode acontecer um erro no processamento e aí vem a questão de como lidar com isso.
+
+A convenção é que cada callback receba sempre o erro no primeiro parâmetro. Na função callback, basta então verificar esse parâmetro para saber se ocorreu um erro ou não!
+
+https://www.alura.com.br/artigos/ordenacao-de-numeros-no-javascript-nao-funciona
+
+iniciar a aplicação 
+
+ir até o directório C:\Users\Thales Ernane\Documents\Alura\JavaScript\javascript-avancado-i-aula1\aluraframe\server
+
+digitar npm start 
+
+https://dexie.org/
+
+http://aaronpowell.github.io/db.js/
+
+https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API

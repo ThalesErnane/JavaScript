@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprendendo IndexedDB</title>
+</head>
+<body>
+    <script src="js/app/models/Negociacao.js"></script>
+    <script>
+
+        // criando a conexão com BD
+        var connection;
+
+        var openRequest = window.indexedDB.open('aluraframe', 3);
+
+        openRequest.onupgradeneeded = e => {
+
+            console.log('Cria ou altera um banco já existente');
+
+            let minhaConnecttion = e.target.result; 
+
+            if(minhaConnecttion.objectStoreNames.contains('negociacoes'))
+                {
+                    minhaConnecttion.deleteObjectStore('negociacoes');
+                  
+                }
+       
+                    minhaConnecttion.createObjectStore('negociacoes', { autoIncrement: true });
+
+        };
+
+        openRequest.onsuccess = e => {
+
+            console.log('Conexão obtida com sucesso');
+            connection = e.target.result; // criando a conexão 
+        };
+
+        openRequest.onerror = e => {
+
+            console.log(e.target.error);
+        };
+
+        function adiciona() {
+
+            let transaction = connection.transaction(['negociacoes'], 'readwrite'); // pega a transação para OBject Store
+            let store = transaction.objectStore('negociacoes'); // da acesso a objectStore
+
+            let negociacao = new Negociacao(new Date(), 200, 1);
+            let request = store.add(negociacao);
+
+            request.onsuccess = e => {
+                console.log("Negociação incluída com sucesso");
+            };
+
+            request.onerror = e => {
+                console.log("Não foi possivel incluir a negociação");
+            };
+        }
+
+        function listaTodos(){
+
+            let transaction = connection.transaction(['negociacoes'], 'readwrite'); // pega a transação para OBject Store
+            let store = transaction.objectStore('negociacoes'); // da acesso a objectStore
+
+            let cursor = store.openCursor();
+            let negociacoes = []; 
+
+            cursor.onsuccess = e => {
+            let atual = e.target.result; // ponteiro para uma negociação para o banco    
+            
+             if(atual){
+                 let dado = atual.value;
+
+                 negociacoes.push(new Negociacao(dado._data, dado._quantidade, dado._valor));
+                 atual.continue();
+             
+                }   else {
+                 console.log(negociacoes);   
+             }
+        };
+
+        cursor.onerror = e => {
+
+            console.log(e.target.error.name);
+        };
+
+        }
+
+        ConnectionFactory.getConnection().then(connection => {
+            // usa a conexão 
+        });
+    
+        ConnectionFactory.getConnection().then(connection => {
+            // a conexão tem que ser a mesma utilizada anteriormente 
+        });
+    
+        // a - getConnection vai ser um método estático
+        // b - getConnection vai retornar uma promise
+        // c - não importa o número de vezes que eu chamar o método estático, a conexão tem que ser a mesma
+        // d - o programação não pode chamar close diretamente. Elsa só pode ser fechada da própria ConnectionFactory  
+
+
+    </script>
+</body>
+</html>

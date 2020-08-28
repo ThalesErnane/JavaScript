@@ -1,0 +1,46 @@
+class Pessoa {
+
+    constructor(nome) {
+        this._nome = nome;
+    }
+
+    get nome() {
+        return this._nome;
+    }
+
+    set nome(nome) {
+        this._nome = nome;
+    }
+
+    grita(frase) {
+            return `${this._nome} grita ${frase}`;
+    }
+}
+
+let pessoa = new Pessoa('Barney');
+pessoa.grita('Olá');
+
+
+let pessoa = new Proxy(new Pessoa('Barney'), {
+
+    get(target, prop, receiver) {
+        if(prop == 'grita' && typeof(target[prop]) == typeof(Function)) {
+     // essa função retornada irá substituir o método 'grita' no proxy!!! Ou seja, estamos usando o handler do proxy para modificar o próprio proxy, que loucura!
+            return function() {
+                console.log(`Método chamado: ${prop}`);    
+                // Quando usarmos Reflect.apply, Reflect.get e Reflect.set precisamos retornar o resultado da operação com return
+                // arguments é uma variável implícita que dá acesso à todos os parâmetros recebidos pelo método/função
+                return Reflect.apply(target[prop], target, arguments);       
+            }
+        }
+        // só executa se não for função
+        return Reflect.get(target, prop, receiver);
+    }
+});
+
+pessoa.grita('Olá');
+
+
+Apesar de a função não receber parâmetros e estarmos passando dois, não haverá qualquer erro. Inclusive, dentro da função usamos a variável implícita arguments para termos acesso ao primeiro e ao segundo parâmetros passado para a função.
+
+Veja que no código do nosso proxy, como estamos substituindo o método grita por outra função e não sabemos se ela recebe ou não um parâmetro, usamos arguments na função substituta para chamarmos Reflect.apply, garantindo assim que a nova função, quando executada, receba corretamente seus parâmetros logo após executarmos o código que desejarmos (armadilha).
